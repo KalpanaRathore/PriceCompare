@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap');
+
+:root {
+  --bg: #edf4f4;
+  --line: #d4e2e1;
+  --text-strong: #132829;
+  --text-muted: #4f6463;
+  --accent-strong: #0d7c6c;
+  --shadow-soft: 0 16px 38px rgba(17, 49, 45, 0.08);
+
+  font-family: 'Outfit', 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--text-muted);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 96% 1%, rgba(240, 138, 36, 0.2), transparent 25%),
+    radial-gradient(circle at 4% 95%, rgba(13, 124, 108, 0.22), transparent 33%),
+    linear-gradient(180deg, #f1f7f7 0%, #ebf2f2 100%);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Sora', 'Outfit', sans-serif;
+}

@@ -1,0 +1,9 @@
+price-comparison-ui/node_modules
+price-comparison-ui/dist
+
+price-comparison-backend/node_modules
+price-comparison-backend/dist
+
+.env
+.env.local
+.DS_Store
