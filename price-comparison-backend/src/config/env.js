@@ -14,10 +14,11 @@ const env = {
   searchDeadlineMs: Number(process.env.SEARCH_DEADLINE_MS) || 0,
   partialCacheTtlSeconds: Number(process.env.PARTIAL_CACHE_TTL_SECONDS) || 45,
   scrapeProxyUrl: process.env.SCRAPE_PROXY_URL || "",
-  amazonProxyUrl: process.env.AMAZON_PROXY_URL || "",
-  flipkartProxyUrl: process.env.FLIPKART_PROXY_URL || "",
   blinkitProxyUrl: process.env.BLINKIT_PROXY_URL || "",
+  bbNowProxyUrl: process.env.BB_NOW_PROXY_URL || "",
+  flipkartMinutesProxyUrl: process.env.FLIPKART_MINUTES_PROXY_URL || "",
   zeptoProxyUrl: process.env.ZEPTO_PROXY_URL || "",
+  instamartProxyUrl: process.env.INSTAMART_PROXY_URL || "",
   useRedis: String(process.env.USE_REDIS || "false").toLowerCase() === "true",
 };
 

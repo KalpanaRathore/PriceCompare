@@ -1,15 +1,16 @@
 const pLimit = require("p-limit").default;
-const { scrapeAmazon } = require("./scrapers/amazon.scraper");
-const { scrapeFlipkart } = require("./scrapers/flipkart.scraper");
 const { scrapeBlinkit } = require("./scrapers/blinkit.scraper");
+const { scrapeBbNow } = require("./scrapers/bbnow.scraper");
+const { scrapeFlipkartMinutes } = require("./scrapers/flipkartminutes.scraper");
 const { scrapeZepto } = require("./scrapers/zepto.scraper");
+const { scrapeInstamart } = require("./scrapers/instamart.scraper");
 const { normalizeProducts } = require("./normalization.service");
 const cacheService = require("./cache.service");
 const historyService = require("./history.service");
 const logger = require("../config/logger");
 const env = require("../config/env");
 
-const limit = pLimit(4);
+const limit = pLimit(5);
 const MAX_CANDIDATES_PER_PLATFORM = {
   fast: 20,
   full: 80,
@@ -30,22 +31,36 @@ function withTimeout(promise, timeoutMs, platformLabel) {
   ]);
 }
 
+function getPlatformTimeoutMs(platform = "") {
+  const normalized = String(platform || "").toLowerCase();
+
+  if (normalized === "flipkartminutes") {
+    return Math.max(env.platformTimeoutMs, 16000);
+  }
+
+  return env.platformTimeoutMs;
+}
+
 const PLATFORM_SCRAPERS = {
-  amazon: {
-    displayName: "Amazon",
-    run: scrapeAmazon,
-  },
-  flipkart: {
-    displayName: "Flipkart",
-    run: scrapeFlipkart,
-  },
   blinkit: {
     displayName: "Blinkit",
     run: scrapeBlinkit,
   },
+  bbnow: {
+    displayName: "BigBasket BB Now",
+    run: scrapeBbNow,
+  },
+  flipkartminutes: {
+    displayName: "Flipkart Minutes",
+    run: scrapeFlipkartMinutes,
+  },
   zepto: {
     displayName: "Zepto",
     run: scrapeZepto,
+  },
+  instamart: {
+    displayName: "Swiggy Instamart",
+    run: scrapeInstamart,
   },
 };
 
@@ -183,7 +198,7 @@ exports.search = async ({ q, page, pageSize, platforms = [], mode = "fast" }) =>
       task: limit(() =>
         withTimeout(
           scraper.run(q),
-          env.platformTimeoutMs,
+          getPlatformTimeoutMs(platform),
           scraper.displayName
         )
       ),

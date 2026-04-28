@@ -349,19 +349,19 @@
   font-size: 0.65rem;
 }
 
-.platform-badge.platform-amazon {
-  background: #fff4e6;
-  color: #8b4f00;
-}
-
-.platform-badge.platform-flipkart {
-  background: #ebf3ff;
-  color: #0d4ea6;
-}
-
 .platform-badge.platform-blinkit {
   background: #fff9dc;
   color: #866300;
+}
+
+.platform-badge.platform-bbnow {
+  background: #e7f7ee;
+  color: #116b3a;
+}
+
+.platform-badge.platform-flipkartminutes {
+  background: #eaf2ff;
+  color: #0b4ab5;
 }
 
 .platform-badge.platform-zepto {
@@ -369,19 +369,14 @@
   color: #5c2f98;
 }
 
+.platform-badge.platform-instamart {
+  background: #fff0e8;
+  color: #b64600;
+}
+
 .platform-badge.platform-unknown {
   background: #eef2f7;
   color: #334155;
-}
-
-.platform-chip .platform-logo.platform-amazon {
-  background: #fff4e6;
-  color: #8b4f00;
-}
-
-.platform-chip .platform-logo.platform-flipkart {
-  background: #ebf3ff;
-  color: #0d4ea6;
 }
 
 .platform-chip .platform-logo.platform-blinkit {
@@ -389,9 +384,24 @@
   color: #866300;
 }
 
+.platform-chip .platform-logo.platform-bbnow {
+  background: #e7f7ee;
+  color: #116b3a;
+}
+
+.platform-chip .platform-logo.platform-flipkartminutes {
+  background: #eaf2ff;
+  color: #0b4ab5;
+}
+
 .platform-chip .platform-logo.platform-zepto {
   background: #f3e9ff;
   color: #5c2f98;
+}
+
+.platform-chip .platform-logo.platform-instamart {
+  background: #fff0e8;
+  color: #b64600;
 }
 
 .platform-chip .platform-logo.platform-unknown {

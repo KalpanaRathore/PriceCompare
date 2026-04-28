@@ -5,7 +5,7 @@ Frontend for a product price comparison website that fetches real data from a ba
 ## Features
 
 - Live search input with backend API calls
-- Marketplace comparison (Amazon, Flipkart, Blinkit, and others)
+- Marketplace comparison (Blinkit, BigBasket BB Now, Flipkart Minutes, Zepto, and Swiggy Instamart)
 - Platform filter chips and max-price slider
 - Pagination and infinite scroll for large result sets
 - Product cards with offer links and price history sparkline
@@ -75,13 +75,13 @@ Sample response:
       "qualityScore": 9.4,
       "offers": [
         {
-          "platform": "Amazon",
-          "price": 26990,
-          "originalPrice": 34990,
-          "rating": 4.7,
+          "platform": "Blinkit",
+          "price": 71000,
+          "originalPrice": 74900,
+          "rating": 4.5,
           "inStock": true,
           "delivery": "Tomorrow",
-          "productUrl": "https://www.amazon.in/example-product-link",
+          "productUrl": "https://blinkit.com/example-product-link",
           "priceHistory": [
             { "timestamp": "2026-03-10", "price": 31990 },
             { "timestamp": "2026-03-12", "price": 29990 },

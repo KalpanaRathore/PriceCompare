@@ -27,20 +27,24 @@ function parseProxyUrl(proxyUrl) {
 function resolveProxyUrl(platform) {
   const normalized = String(platform || "").toLowerCase();
 
-  if (normalized === "amazon" && env.amazonProxyUrl) {
-    return env.amazonProxyUrl;
-  }
-
-  if (normalized === "flipkart" && env.flipkartProxyUrl) {
-    return env.flipkartProxyUrl;
-  }
-
   if (normalized === "blinkit" && env.blinkitProxyUrl) {
     return env.blinkitProxyUrl;
   }
 
+  if (normalized === "bbnow" && env.bbNowProxyUrl) {
+    return env.bbNowProxyUrl;
+  }
+
+  if (normalized === "flipkartminutes" && env.flipkartMinutesProxyUrl) {
+    return env.flipkartMinutesProxyUrl;
+  }
+
   if (normalized === "zepto" && env.zeptoProxyUrl) {
     return env.zeptoProxyUrl;
+  }
+
+  if (normalized === "instamart" && env.instamartProxyUrl) {
+    return env.instamartProxyUrl;
   }
 
   return env.scrapeProxyUrl || "";

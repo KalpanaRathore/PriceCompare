@@ -8,20 +8,24 @@ function normalizePlatformKey(platform: string) {
 export function getPlatformBadgeMeta(platform: string) {
   const key = normalizePlatformKey(platform)
 
-  if (key === 'amazon') {
-    return { key, label: 'Amazon', short: 'A' }
-  }
-
-  if (key === 'flipkart') {
-    return { key, label: 'Flipkart', short: 'F' }
-  }
-
   if (key === 'blinkit') {
     return { key, label: 'Blinkit', short: 'B' }
   }
 
+  if (key === 'bbnow' || key === 'bigbasketbbnow' || key === 'bigbasketnow') {
+    return { key: 'bbnow', label: 'BigBasket BB Now', short: 'BB' }
+  }
+
+  if (key === 'flipkartminutes') {
+    return { key, label: 'Flipkart Minutes', short: 'FM' }
+  }
+
   if (key === 'zepto') {
     return { key, label: 'Zepto', short: 'Z' }
+  }
+
+  if (key === 'instamart' || key === 'swiggyinstamart') {
+    return { key: 'instamart', label: 'Swiggy Instamart', short: 'SI' }
   }
 
   return {

@@ -157,7 +157,7 @@ export function ProductCard({ product }: ProductCardProps) {
                         className="visit-button"
                         href={offer.productUrl}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                       >
                         Visit Store
                       </a>

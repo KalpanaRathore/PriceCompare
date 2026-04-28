@@ -11,8 +11,17 @@ const {
 } = require("./scraper.utils");
 
 const MAX_RESULTS_PER_PLATFORM = 80;
+const REQUEST_TIMEOUT_MS = Math.min(env.scrapeTimeoutMs, 5000);
 
-function parseZeptoProducts(html) {
+function getSearchUrlCandidates(query) {
+  const encoded = encodeURIComponent(query);
+  return [
+    `https://www.flipkart.com/search?q=${encoded}`,
+    `https://www.flipkart.com/minutes/search?q=${encoded}`,
+  ];
+}
+
+function parseFlipkartMinutesProducts(html, searchUrl = "") {
   const $ = toCheerio(html);
   const products = [];
   const seen = new Set();
@@ -39,7 +48,7 @@ function parseZeptoProducts(html) {
     products.push(candidate);
   }
 
-  $("[data-testid*='product'], [class*='ProductCard'], a[href*='/pn/'], a[href*='/p/']").each(
+  $("[data-testid*='product'], [class*='ProductCard'], a[href*='/p/'], a[href*='minutes'], div[data-id]").each(
     (index, element) => {
       if (index >= MAX_RESULTS_PER_PLATFORM) return;
 
@@ -48,6 +57,9 @@ function parseZeptoProducts(html) {
       const rupeeValues = extractRupeeValues(rawText);
 
       const name =
+        card.find("a[title]").first().text().trim() ||
+        card.find("div.KzDlHZ").first().text().trim() ||
+        card.find("a.wjcEIp").first().text().trim() ||
         card.find("h3, h4, [class*='name'], [class*='title']").first().text().trim() ||
         card.find("img").first().attr("alt") ||
         rawText.slice(0, 140);
@@ -58,17 +70,18 @@ function parseZeptoProducts(html) {
         "";
 
       const href =
+        card.find("a.k7wcnx").first().attr("href") ||
         card.attr("href") ||
-        card.find("a[href*='/pn/'], a[href*='/p/']").first().attr("href") ||
+        card.find("a[href*='/p/'], a[href*='minutes']").first().attr("href") ||
         "";
 
       const priceText =
-        card.find("[class*='Price'], [data-testid*='price']").first().text() || rawText;
+        card.find("div.Nx9bqj, div._30jeq3, [class*='Price'], [data-testid*='price']").first().text() || rawText;
       const price = parsePrice(priceText) || rupeeValues[0] || 0;
 
       pushProduct({
         productId: makeProductId(name),
-        platform: "Zepto",
+        platform: "Flipkart Minutes",
         name,
         brand: getBrandFromName(name),
         category: "Grocery",
@@ -78,7 +91,7 @@ function parseZeptoProducts(html) {
         rating: 0,
         inStock: true,
         delivery: "Instant",
-        productUrl: resolveProductUrl("zepto", href, name),
+        productUrl: resolveProductUrl("flipkartminutes", href, name) || searchUrl,
       });
     }
   );
@@ -86,7 +99,7 @@ function parseZeptoProducts(html) {
   return products;
 }
 
-function normalizeZeptoDomProducts(items = [], searchUrl = "") {
+function normalizeFlipkartMinutesDomProducts(items = [], searchUrl = "") {
   const seen = new Set();
   const products = [];
 
@@ -105,15 +118,12 @@ function normalizeZeptoDomProducts(items = [], searchUrl = "") {
     seen.add(dedupeKey);
 
     const originalPrice = Number(item?.originalPrice || 0) || price;
-    const productUrl = resolveProductUrl(
-      "zepto",
-      item?.productUrl,
-      name
-    ) || searchUrl;
+    const productUrl =
+      resolveProductUrl("flipkartminutes", item?.productUrl, name) || searchUrl;
 
     products.push({
       productId: makeProductId(name),
-      platform: "Zepto",
+      platform: "Flipkart Minutes",
       name,
       brand: getBrandFromName(name),
       category: "Grocery",
@@ -130,35 +140,36 @@ function normalizeZeptoDomProducts(items = [], searchUrl = "") {
   return products;
 }
 
-async function fetchWithPlaywright(searchUrl) {
-  const browser = await createBrowser("zepto");
+async function fetchWithPlaywright(searchUrls = []) {
+  const browser = await createBrowser("flipkartminutes");
   try {
-    const page = await browser.newPage({
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-    });
-
-    await page.setExtraHTTPHeaders({
-      "accept-language": "en-IN,en;q=0.9",
-      referer: "https://www.google.com/",
-    });
-
-    await page.goto(searchUrl, {
-      waitUntil: "domcontentloaded",
-      timeout: env.scrapeTimeoutMs,
-    });
-
-    try {
-      await page.waitForSelector("a[href*='/pn/'], a[href*='/p/'], [class*='Product']", {
-        timeout: 7000,
+    for (const searchUrl of searchUrls) {
+      const page = await browser.newPage({
+        userAgent:
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
       });
-    } catch (error) {
-      // Continue with page parsing even if Zepto markup differs in this session.
-    }
 
-    await page.waitForTimeout(1800);
+      await page.setExtraHTTPHeaders({
+        "accept-language": "en-IN,en;q=0.9",
+        referer: "https://www.google.com/",
+      });
 
-    const domProducts = await page.evaluate(() => {
+      await page.goto(searchUrl, {
+        waitUntil: "domcontentloaded",
+        timeout: REQUEST_TIMEOUT_MS,
+      });
+
+      try {
+        await page.waitForSelector("a[href*='/p/'], [class*='Product'], [data-testid*='product'], div[data-id]", {
+          timeout: 3500,
+        });
+      } catch (error) {
+        // Continue with page parsing even if markup differs.
+      }
+
+      await page.waitForTimeout(800);
+
+      const domProducts = await page.evaluate(() => {
       function cleanText(value) {
         return String(value || "")
           .replace(/\s+/g, " ")
@@ -174,7 +185,7 @@ async function fetchWithPlaywright(searchUrl) {
 
       const cards = Array.from(
         document.querySelectorAll(
-          "[data-testid*='product'], [class*='ProductCard'], a[href*='/pn/'], a[href*='/p/']"
+          "[data-testid*='product'], [class*='ProductCard'], [class*='Product'], a[href*='/p/'], a[href*='minutes'], div[data-id]"
         )
       ).slice(0, 80);
 
@@ -216,47 +227,61 @@ async function fetchWithPlaywright(searchUrl) {
         });
       }
 
-      return rows;
-    });
+        return rows;
+      });
 
-    const normalizedDomProducts = normalizeZeptoDomProducts(domProducts, searchUrl);
-    if (normalizedDomProducts.length) {
-      return normalizedDomProducts;
+      const normalizedDomProducts = normalizeFlipkartMinutesDomProducts(domProducts, searchUrl);
+      if (normalizedDomProducts.length) {
+        await page.close();
+        return normalizedDomProducts;
+      }
+
+      const html = await page.content();
+      const parsed = parseFlipkartMinutesProducts(html, searchUrl);
+      await page.close();
+
+      if (parsed.length) {
+        return parsed;
+      }
     }
 
-    const html = await page.content();
-    return parseZeptoProducts(html);
+    return [];
   } finally {
     await browser.close();
   }
 }
 
-exports.scrapeZepto = async (query) => {
-  const searchUrl = `https://www.zeptonow.com/search?query=${encodeURIComponent(query)}`;
+exports.scrapeFlipkartMinutes = async (query) => {
+  const searchUrls = getSearchUrlCandidates(query);
 
   const run = async () => {
-    await randomDelay(500, 1500);
+    await randomDelay(150, 450);
 
     let products = [];
     let httpError = null;
 
-    try {
-      const html = await fetchHtml(searchUrl, env.scrapeTimeoutMs, {
-        platform: "zepto",
-      });
-      products = parseZeptoProducts(html);
-    } catch (error) {
-      httpError = error;
+    for (const searchUrl of searchUrls) {
+      try {
+        const html = await fetchHtml(searchUrl, REQUEST_TIMEOUT_MS, {
+          platform: "flipkartminutes",
+        });
+        products = parseFlipkartMinutesProducts(html, searchUrl);
+        if (products.length) {
+          break;
+        }
+      } catch (error) {
+        httpError = error;
+      }
     }
 
     if (!products.length) {
-      products = await fetchWithPlaywright(searchUrl);
+      products = await fetchWithPlaywright(searchUrls);
     }
 
     if (!products.length) {
       const reason = httpError?.message ? ` (${httpError.message})` : "";
-      const error = new Error(`No products parsed from Zepto${reason}`);
-      error.platform = "Zepto";
+      const error = new Error(`No products parsed from Flipkart Minutes${reason}`);
+      error.platform = "Flipkart Minutes";
       throw error;
     }
 
@@ -264,7 +289,7 @@ exports.scrapeZepto = async (query) => {
   };
 
   return withRetry(run, {
-    retries: 1,
-    platform: "Zepto",
+    retries: 0,
+    platform: "Flipkart Minutes",
   });
 };

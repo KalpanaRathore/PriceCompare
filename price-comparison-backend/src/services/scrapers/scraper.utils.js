@@ -78,6 +78,57 @@ function toCheerio(html) {
   return cheerio.load(html);
 }
 
+function getPlatformBaseUrl(platform = "") {
+  const key = String(platform || "").trim().toLowerCase();
+
+  if (key === "blinkit") return "https://blinkit.com";
+  if (key === "bbnow") return "https://www.bigbasket.com";
+  if (key === "flipkartminutes") return "https://www.flipkart.com";
+  if (key === "zepto") return "https://www.zeptonow.com";
+  if (key === "instamart") return "https://www.swiggy.com";
+
+  return "";
+}
+
+function buildPlatformSearchUrl(platform = "", productName = "") {
+  const query = encodeURIComponent(String(productName || "").trim());
+  const key = String(platform || "").trim().toLowerCase();
+
+  if (key === "blinkit") return `https://blinkit.com/s/?q=${query}`;
+  if (key === "bbnow") return `https://www.bigbasket.com/ps/?q=${query}`;
+  if (key === "flipkartminutes") return `https://www.flipkart.com/minutes/search?q=${query}`;
+  if (key === "zepto") return `https://www.zeptonow.com/search?query=${query}`;
+  if (key === "instamart") return `https://www.swiggy.com/instamart/search?query=${query}`;
+
+  return "";
+}
+
+function toAbsolutePlatformUrl(platform = "", href = "") {
+  const value = String(href || "").trim();
+  if (!value) {
+    return "";
+  }
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  const baseUrl = getPlatformBaseUrl(platform);
+  if (!baseUrl) {
+    return "";
+  }
+
+  const normalizedPath = value.startsWith("/") ? value : `/${value}`;
+  return `${baseUrl}${normalizedPath}`;
+}
+
+function resolveProductUrl(platform = "", href = "", productName = "") {
+  return (
+    toAbsolutePlatformUrl(platform, href) ||
+    buildPlatformSearchUrl(platform, productName)
+  );
+}
+
 module.exports = {
   fetchHtml,
   text,
@@ -87,4 +138,7 @@ module.exports = {
   makeProductId,
   getBrandFromName,
   toCheerio,
+  toAbsolutePlatformUrl,
+  buildPlatformSearchUrl,
+  resolveProductUrl,
 };

@@ -7,6 +7,7 @@ const {
   makeProductId,
   getBrandFromName,
   toCheerio,
+  resolveProductUrl,
 } = require("./scraper.utils");
 
 const MAX_RESULTS_PER_PLATFORM = 80;
@@ -79,7 +80,7 @@ function parseBlinkitProducts(html) {
       rating: 0,
       inStock: true,
       delivery: "Instant",
-      productUrl: href.startsWith("http") ? href : `https://blinkit.com${href}`,
+      productUrl: resolveProductUrl("blinkit", href, name),
     });
   });
 
@@ -114,7 +115,7 @@ function parseBlinkitProducts(html) {
         rating: 0,
         inStock: true,
         delivery: "Instant",
-        productUrl: href.startsWith("http") ? href : `https://blinkit.com${href}`,
+        productUrl: resolveProductUrl("blinkit", href, name),
       });
     });
   }
@@ -141,11 +142,11 @@ function normalizeBlinkitDomProducts(items = [], searchUrl = "") {
     seen.add(dedupeKey);
 
     const originalPrice = Number(item?.originalPrice || 0) || price;
-    const productUrl = item?.productUrl
-      ? item.productUrl.startsWith("http")
-        ? item.productUrl
-        : `https://blinkit.com${item.productUrl}`
-      : searchUrl;
+    const productUrl = resolveProductUrl(
+      "blinkit",
+      item?.productUrl,
+      name
+    ) || searchUrl;
 
     products.push({
       productId: makeProductId(name),

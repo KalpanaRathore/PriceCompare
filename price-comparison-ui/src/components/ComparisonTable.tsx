@@ -67,7 +67,7 @@ export function ComparisonTable({ products }: ComparisonTableProps) {
                   <td>
                     {bestOffer.delivery}
                     <span>
-                      <a href={bestOffer.productUrl} target="_blank" rel="noreferrer">
+                      <a href={bestOffer.productUrl} target="_blank" rel="noopener noreferrer">
                         Visit listing
                       </a>
                     </span>
