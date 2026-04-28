@@ -32,7 +32,7 @@ module.exports = (req, res, next) => {
     });
   }
 
-  const allowedPlatforms = ["blinkit", "bbnow", "flipkartminutes", "zepto", "instamart"];
+  const allowedPlatforms = ["blinkit", "bbnow", "flipkartminutes", "jiomartexpress", "zepto", "instamart"];
   const platformAliases = {
     bigbasket: "bbnow",
     "bigbasket-now": "bbnow",
@@ -41,6 +41,14 @@ module.exports = (req, res, next) => {
     "bb_now": "bbnow",
     "flipkart-minutes": "flipkartminutes",
     "flipkart_minutes": "flipkartminutes",
+    jiomart: "jiomartexpress",
+    "jio-mart": "jiomartexpress",
+    "jio_mart": "jiomartexpress",
+    "jiomart-express": "jiomartexpress",
+    "jiomart_express": "jiomartexpress",
+    jioexpress: "jiomartexpress",
+    "jio-express": "jiomartexpress",
+    "jio_express": "jiomartexpress",
   };
 
   if (platforms) {
@@ -57,7 +65,7 @@ module.exports = (req, res, next) => {
     if (!selectedPlatforms.length || invalidPlatforms.length) {
       return res.status(400).json({
         message:
-          "'platforms' must be a comma-separated list containing any of: blinkit, bbnow, flipkartminutes, zepto, instamart",
+          "'platforms' must be a comma-separated list containing any of: blinkit, bbnow, flipkartminutes, jiomartexpress, zepto, instamart",
         code: "INVALID_PLATFORMS",
         details: {
           invalidPlatforms,

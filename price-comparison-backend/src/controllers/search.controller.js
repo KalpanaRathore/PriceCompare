@@ -5,7 +5,7 @@ exports.searchProducts = asyncHandler(async (req, res) => {
   const { q, page = 1, pageSize = 20 } = req.query;
   const platforms = Array.isArray(req.searchPlatforms)
     ? req.searchPlatforms
-    : ["blinkit", "bbnow", "flipkartminutes", "zepto", "instamart"];
+    : ["blinkit", "bbnow", "flipkartminutes", "jiomartexpress", "zepto", "instamart"];
   const mode = req.searchMode || "full";
 
   const result = await searchService.search({

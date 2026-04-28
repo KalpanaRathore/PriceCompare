@@ -2,6 +2,7 @@ const pLimit = require("p-limit").default;
 const { scrapeBlinkit } = require("./scrapers/blinkit.scraper");
 const { scrapeBbNow } = require("./scrapers/bbnow.scraper");
 const { scrapeFlipkartMinutes } = require("./scrapers/flipkartminutes.scraper");
+const { scrapeJioMartExpress } = require("./scrapers/jiomartexpress.scraper");
 const { scrapeZepto } = require("./scrapers/zepto.scraper");
 const { scrapeInstamart } = require("./scrapers/instamart.scraper");
 const { normalizeProducts } = require("./normalization.service");
@@ -53,6 +54,10 @@ const PLATFORM_SCRAPERS = {
   flipkartminutes: {
     displayName: "Flipkart Minutes",
     run: scrapeFlipkartMinutes,
+  },
+  jiomartexpress: {
+    displayName: "JioMart Express",
+    run: scrapeJioMartExpress,
   },
   zepto: {
     displayName: "Zepto",

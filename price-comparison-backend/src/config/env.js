@@ -19,6 +19,7 @@ const env = {
   flipkartMinutesProxyUrl: process.env.FLIPKART_MINUTES_PROXY_URL || "",
   zeptoProxyUrl: process.env.ZEPTO_PROXY_URL || "",
   instamartProxyUrl: process.env.INSTAMART_PROXY_URL || "",
+  jioMartExpressProxyUrl: process.env.JIOMART_EXPRESS_PROXY_URL || "",
   useRedis: String(process.env.USE_REDIS || "false").toLowerCase() === "true",
 };
 

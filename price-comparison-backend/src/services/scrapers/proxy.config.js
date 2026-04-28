@@ -47,6 +47,10 @@ function resolveProxyUrl(platform) {
     return env.instamartProxyUrl;
   }
 
+  if (normalized === "jiomartexpress" && env.jioMartExpressProxyUrl) {
+    return env.jioMartExpressProxyUrl;
+  }
+
   return env.scrapeProxyUrl || "";
 }
 

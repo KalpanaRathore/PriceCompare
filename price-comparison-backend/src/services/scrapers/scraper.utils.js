@@ -86,6 +86,7 @@ function getPlatformBaseUrl(platform = "") {
   if (key === "flipkartminutes") return "https://www.flipkart.com";
   if (key === "zepto") return "https://www.zeptonow.com";
   if (key === "instamart") return "https://www.swiggy.com";
+  if (key === "jiomartexpress") return "https://www.jiomart.com";
 
   return "";
 }
@@ -99,6 +100,7 @@ function buildPlatformSearchUrl(platform = "", productName = "") {
   if (key === "flipkartminutes") return `https://www.flipkart.com/minutes/search?q=${query}`;
   if (key === "zepto") return `https://www.zeptonow.com/search?query=${query}`;
   if (key === "instamart") return `https://www.swiggy.com/instamart/search?query=${query}`;
+  if (key === "jiomartexpress") return `https://www.jiomart.com/search/${query}`;
 
   return "";
 }

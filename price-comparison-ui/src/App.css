@@ -364,6 +364,11 @@
   color: #0b4ab5;
 }
 
+.platform-badge.platform-jiomartexpress {
+  background: #eef8ef;
+  color: #136b3d;
+}
+
 .platform-badge.platform-zepto {
   background: #f3e9ff;
   color: #5c2f98;
@@ -392,6 +397,11 @@
 .platform-chip .platform-logo.platform-flipkartminutes {
   background: #eaf2ff;
   color: #0b4ab5;
+}
+
+.platform-chip .platform-logo.platform-jiomartexpress {
+  background: #eef8ef;
+  color: #136b3d;
 }
 
 .platform-chip .platform-logo.platform-zepto {

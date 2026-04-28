@@ -369,7 +369,7 @@ function App() {
         <p className="eyebrow">PricePilot</p>
         <h1>Compare prices like flight aggregators, but for shopping.</h1>
         <p>
-          Search once and compare Blinkit, BigBasket BB Now, Flipkart Minutes, Zepto, and Instamart in one professional
+          Search once and compare Blinkit, BigBasket BB Now, JioMart Express, Flipkart Minutes, Zepto, and Instamart in one professional
           dashboard with real-time style deal insights.
         </p>
       </header>

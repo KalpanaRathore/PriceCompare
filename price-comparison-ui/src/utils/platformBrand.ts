@@ -20,6 +20,10 @@ export function getPlatformBadgeMeta(platform: string) {
     return { key, label: 'Flipkart Minutes', short: 'FM' }
   }
 
+  if (key === 'jiomartexpress' || key === 'jiomart' || key === 'jioexpress') {
+    return { key: 'jiomartexpress', label: 'JioMart Express', short: 'JM' }
+  }
+
   if (key === 'zepto') {
     return { key, label: 'Zepto', short: 'Z' }
   }
