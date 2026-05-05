@@ -26,9 +26,18 @@ function parseFlipkartMinutesProducts(html, searchUrl = "") {
   const products = [];
   const seen = new Set();
 
-  function extractRupeeValues(textValue = "") {
+  function extractFirstPrice(textValue = "") {
+    // Extract only the FIRST rupee value to avoid concatenation issues
+    const match = String(textValue).match(/\u20B9\s?[\d,]+/);
+    if (!match) return 0;
+    return parsePrice(match[0]);
+  }
+
+  function extractPrices(textValue = "") {
     const matches = String(textValue).match(/\u20B9\s?[\d,]+/g) || [];
-    return matches.map((item) => parsePrice(item)).filter((value) => value > 0);
+    return matches
+      .map((item) => parsePrice(item))
+      .filter((value) => value > 0);
   }
 
   function pushProduct(candidate) {
@@ -54,7 +63,27 @@ function parseFlipkartMinutesProducts(html, searchUrl = "") {
 
       const card = $(element);
       const rawText = card.text().replace(/\s+/g, " ").trim();
-      const rupeeValues = extractRupeeValues(rawText);
+
+      // Try to extract price from specific price element first
+      const priceElement = card.find(
+        "div[class*='Price'] span, div[class*='price'] span, div[class*='_1vC4OE'], div[class*='Nx9bqj'], span[class*='_30jeq3'], [data-testid*='price']"
+      ).first();
+
+      let price = 0;
+      if (priceElement.length) {
+        price = extractFirstPrice(priceElement.text());
+      }
+
+      // If no specific price element found or price is 0, try looking for price in common structures
+      if (!price) {
+        const allPrices = extractPrices(rawText);
+        // Pick the first price that's reasonable (not too small to be discount %)
+        price = allPrices.find((p) => p > 5) || allPrices[0] || 0;
+      }
+
+      if (!price) {
+        return; // Skip if no valid price found
+      }
 
       const name =
         card.find("a[title]").first().text().trim() ||
@@ -75,9 +104,15 @@ function parseFlipkartMinutesProducts(html, searchUrl = "") {
         card.find("a[href*='/p/'], a[href*='minutes']").first().attr("href") ||
         "";
 
-      const priceText =
-        card.find("div.Nx9bqj, div._30jeq3, [class*='Price'], [data-testid*='price']").first().text() || rawText;
-      const price = parsePrice(priceText) || rupeeValues[0] || 0;
+      // Extract original/MRP price
+      const allPrices = extractPrices(rawText);
+      let originalPrice = price;
+      for (const p of allPrices) {
+        if (p > price) {
+          originalPrice = p;
+          break;
+        }
+      }
 
       pushProduct({
         productId: makeProductId(name),
@@ -87,7 +122,7 @@ function parseFlipkartMinutesProducts(html, searchUrl = "") {
         category: "Grocery",
         image,
         price,
-        originalPrice: rupeeValues[1] || price,
+        originalPrice,
         rating: 0,
         inStock: true,
         delivery: "Instant",
@@ -176,11 +211,68 @@ async function fetchWithPlaywright(searchUrls = []) {
           .trim();
       }
 
-      function parseRupees(value) {
-        const matches = cleanText(value).match(/₹\s?[\d,]+/g) || [];
-        return matches
-          .map((match) => Number(String(match).replace(/[^\d]/g, "")))
-          .filter((number) => Number.isFinite(number) && number > 0);
+      function extractFirstPrice(element) {
+        if (!element) return 0;
+        const text = cleanText(element.textContent || "");
+        // Extract only the FIRST rupee value to avoid concatenation issues
+        const match = text.match(/₹\s?[\d,]+/);
+        if (!match) return 0;
+        const price = Number(String(match[0]).replace(/[^\d]/g, ""));
+        return Number.isFinite(price) && price > 0 ? price : 0;
+      }
+
+      function getPrice(card) {
+        // Try specific price element selectors (in order of priority)
+        const priceSelectors = [
+          "div[class*='Price'] span",
+          "div[class*='price'] span",
+          "div[class*='_1vC4OE']",  // Flipkart common price class
+          "div[class*='Nx9bqj']",   // Alternative Flipkart price class
+          "span[class*='_30jeq3']", // Flipkart price span
+          "div[class*='Price']",
+          "[data-testid*='price']",
+        ];
+
+        for (const selector of priceSelectors) {
+          const priceEl = card.querySelector(selector);
+          if (priceEl) {
+            const price = extractFirstPrice(priceEl);
+            if (price > 0) return price;
+          }
+        }
+
+        // Fallback: extract from price-related text patterns
+        const fullText = cleanText(card.textContent || "");
+        // Look for "₹XX" pattern but stop at certain keywords
+        const priceMatch = fullText.match(/₹\s?[\d,]+(?=\s*(off|%|MRP|Original|save))/i);
+        if (priceMatch) {
+          const price = Number(String(priceMatch[0]).replace(/[^\d]/g, ""));
+          if (Number.isFinite(price) && price > 0) return price;
+        }
+
+        // Last resort: get first valid price
+        const firstPriceMatch = fullText.match(/₹\s?[\d,]+/);
+        if (firstPriceMatch) {
+          const price = Number(String(firstPriceMatch[0]).replace(/[^\d]/g, ""));
+          if (Number.isFinite(price) && price > 0) return price;
+        }
+
+        return 0;
+      }
+
+      function getOriginalPrice(card, currentPrice) {
+        // Look for MRP or original price (usually larger or has specific indicator)
+        const fullText = cleanText(card.textContent || "");
+        const allPrices = fullText.match(/₹\s?[\d,]+/g) || [];
+
+        for (const priceStr of allPrices) {
+          const price = Number(String(priceStr).replace(/[^\d]/g, ""));
+          if (Number.isFinite(price) && price > currentPrice) {
+            return price; // MRP is usually higher than selling price
+          }
+        }
+
+        return currentPrice;
       }
 
       const cards = Array.from(
@@ -192,12 +284,6 @@ async function fetchWithPlaywright(searchUrls = []) {
       const rows = [];
 
       for (const card of cards) {
-        const rawText = cleanText(card.textContent || "");
-        const prices = parseRupees(rawText);
-        if (!prices.length) {
-          continue;
-        }
-
         const name =
           cleanText(
             card.querySelector("h3, h4, [class*='name'], [class*='title']")?.textContent || ""
@@ -209,18 +295,26 @@ async function fetchWithPlaywright(searchUrls = []) {
           continue;
         }
 
+        const price = getPrice(card);
+        if (!price) {
+          continue;
+        }
+
+        const originalPrice = getOriginalPrice(card, price);
+        const rawText = cleanText(card.textContent || "");
+        const deliveryMatch = rawText.match(/\b\d+\s*MINS?\b/i);
+
         const image =
           card.querySelector("img")?.getAttribute("src") ||
           card.querySelector("img")?.getAttribute("data-src") ||
           "";
 
         const link = card.querySelector("a[href]")?.getAttribute("href") || "";
-        const deliveryMatch = rawText.match(/\b\d+\s*MINS?\b/i);
 
         rows.push({
           name,
-          price: prices[0],
-          originalPrice: prices[1] || prices[0],
+          price,
+          originalPrice,
           delivery: deliveryMatch ? deliveryMatch[0].toUpperCase() : "Instant",
           image,
           productUrl: link,
